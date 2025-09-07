@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    container_name: minabpro_postgres
+    environment:
+      POSTGRES_DB: minabpro_recipes
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - minabpro_network
+
+  # Hasura GraphQL Engine
+  hasura:
+    image: hasura/graphql-engine:latest
+    container_name: minabpro_hasura
+    ports:
+      - "8082:8080"
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:password@postgres:5432/minabpro_recipes
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
+      HASURA_GRAPHQL_DEV_MODE: "true"
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
+      HASURA_GRAPHQL_ADMIN_SECRET: your-hasura-admin-secret
+      HASURA_GRAPHQL_JWT_SECRET: '{"type":"HS256", "key":"your-super-secret-jwt-key-here-change-in-production"}'
+      HASURA_GRAPHQL_UNAUTHORIZED_ROLE: anonymous
+      HASURA_GRAPHQL_ENABLE_TELEMETRY: "false"
+    depends_on:
+      - postgres
+    networks:
+      - minabpro_network
+
+volumes:
+  postgres_data:
+
+networks:
+  minabpro_network:
+    driver: bridge 
