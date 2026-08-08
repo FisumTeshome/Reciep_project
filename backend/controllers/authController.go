@@ -1,134 +1,104 @@
 package controllers
 
 import (
-    "encoding/json"
-    "net/http"
-    "time"
+	"encoding/json"
+	"net/http"
 
-    "github.com/golang-jwt/jwt/v5"
-    "golang.org/x/crypto/bcrypt"
+	"github.com/FisumTeshome/Reciep_project/services"
 )
 
-var jwtKey = []byte("your_secret_key")
-
-// Credentials stores the username and password
-type Credentials struct {
-    Username string `json:"username"`
-    Password string `json:"password"`
+func writeJSON(w http.ResponseWriter, status int, payload any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	if payload != nil {
+		_ = json.NewEncoder(w).Encode(payload)
+	}
 }
 
-// saveUserToDatabase saves the username and hashed password to the database
-func saveUserToDatabase(username, hashedPassword string) error {
-    // Implement your database logic here
-    // For now, we'll just return nil to simulate a successful save
-    return nil
+func requireAuthToken(r *http.Request) (string, error) {
+	authHeader := r.Header.Get("Authorization")
+	return services.ExtractBearerToken(authHeader)
 }
 
-// Claims stores the JWT claims
-type Claims struct {
-    Username string `json:"username"`
-    jwt.RegisteredClaims
+func Register(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "method not allowed"})
+		return
+	}
+
+	var input services.RegisterInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid request body"})
+		return
+	}
+
+	user, token, err := services.RegisterUser(input)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+		return
+	}
+
+	writeJSON(w, http.StatusCreated, map[string]any{"token": token, "user": user})
 }
 
-// SignUp handles user registration
 func SignUp(w http.ResponseWriter, r *http.Request) {
-    var creds Credentials
-    err := json.NewDecoder(r.Body).Decode(&creds)
-    if err != nil {
-        http.Error(w, "Invalid request payload", http.StatusBadRequest)
-        return
-    }
-
-    hashedPassword, err := bcrypt.GenerateFromPassword([]byte(creds.Password), bcrypt.DefaultCost)
-    if err != nil {
-        http.Error(w, "Error hashing password", http.StatusInternalServerError)
-        return
-    }
-
-    // Save the username and hashed password to your database
-    err = saveUserToDatabase(creds.Username, string(hashedPassword))
-    if err != nil {
-        http.Error(w, "Error saving user to database", http.StatusInternalServerError)
-        return
-    }
-
-    w.WriteHeader(http.StatusCreated)
+	Register(w, r)
 }
 
-// SignIn handles user login
+func Login(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "method not allowed"})
+		return
+	}
+
+	var input services.LoginInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid request body"})
+		return
+	}
+
+	user, token, err := services.LoginUser(input)
+	if err != nil {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": err.Error()})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{"token": token, "user": user})
+}
+
 func SignIn(w http.ResponseWriter, r *http.Request) {
-    var creds Credentials
-    err := json.NewDecoder(r.Body).Decode(&creds)
-    if err != nil {
-        http.Error(w, "Invalid request payload", http.StatusBadRequest)
-        return
-    }
-
-    // Retrieve the hashed password from your database for the given username
-    // Example: hashedPassword := getUserPassword(creds.Username)
-    hashedPassword := "" // Replace with actual retrieval logic
-    // ...
-
-    // Compare the provided password with the hashed password
-    err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(creds.Password))
-    if err != nil {
-        http.Error(w, "Invalid credentials", http.StatusUnauthorized)
-        return
-    }
-
-    expirationTime := time.Now().Add(5 * time.Minute)
-    claims := &Claims{
-        Username: creds.Username,
-        RegisteredClaims: jwt.RegisteredClaims{
-            ExpiresAt: jwt.NewNumericDate(expirationTime),
-        },
-    }
-
-    token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-    tokenString, err := token.SignedString(jwtKey)
-    if err != nil {
-        http.Error(w, "Error generating token", http.StatusInternalServerError)
-        return
-    }
-
-    http.SetCookie(w, &http.Cookie{
-        Name:    "token",
-        Value:   tokenString,
-        Expires: expirationTime,
-    })
+	Login(w, r)
 }
 
-// Welcome handles authenticated requests
+func Me(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "method not allowed"})
+		return
+	}
+
+	tokenString, err := requireAuthToken(r)
+	if err != nil {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": err.Error()})
+		return
+	}
+
+	user, err := services.GetUserFromToken(tokenString)
+	if err != nil {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "invalid or expired token"})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, user)
+}
+
+func Logout(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "method not allowed"})
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"message": "logged out successfully"})
+}
+
 func Welcome(w http.ResponseWriter, r *http.Request) {
-    cookie, err := r.Cookie("token")
-    if err != nil {
-        if err == http.ErrNoCookie {
-            http.Error(w, "Unauthorized", http.StatusUnauthorized)
-            return
-        }
-        http.Error(w, "Bad request", http.StatusBadRequest)
-        return
-    }
-
-    tokenStr := cookie.Value
-    claims := &Claims{}
-
-    token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
-        return jwtKey, nil
-    })
-    if err != nil {
-        if err == jwt.ErrSignatureInvalid {
-            http.Error(w, "Unauthorized", http.StatusUnauthorized)
-            return
-        }
-        http.Error(w, "Bad request", http.StatusBadRequest)
-        return
-    }
-
-    if !token.Valid {
-        http.Error(w, "Unauthorized", http.StatusUnauthorized)
-        return
-    }
-
-    w.Write([]byte("Welcome " + claims.Username))
+	Me(w, r)
 }

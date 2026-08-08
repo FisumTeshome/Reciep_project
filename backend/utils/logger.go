@@ -1,3 +1,8 @@
-package controllers
+package utils
 
-// This file is intentionally left blank.
+import (
+"log"
+"os"
+)
+
+var Log = log.New(os.Stdout, "[recipe-api] ", log.LstdFlags|log.Lshortfile)

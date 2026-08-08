@@ -19,11 +19,29 @@ func Connect() {
 
 	// Get database connection details from environment variables
 	host := os.Getenv("DB_HOST")
+	if host == "" {
+		host = "localhost"
+	}
 	user := os.Getenv("DB_USER")
+	if user == "" {
+		user = "postgres"
+	}
 	password := os.Getenv("DB_PASSWORD")
+	if password == "" {
+		password = "password"
+	}
 	dbname := os.Getenv("DB_NAME")
+	if dbname == "" {
+		dbname = "minabpro_recipes"
+	}
 	port := os.Getenv("DB_PORT")
+	if port == "" {
+		port = "5432"
+	}
 	sslmode := os.Getenv("DB_SSLMODE")
+	if sslmode == "" {
+		sslmode = "disable"
+	}
 
 	// Create connection string
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
@@ -43,9 +61,10 @@ func Connect() {
 	log.Println("Database connected successfully")
 }
 
-// AutoMigrate runs database migrations
+// AutoMigrate runs database migrations only when tables do not already exist.
+// This avoids clashing with the SQL migrations that already created the schema.
 func AutoMigrate() {
-	err := DB.AutoMigrate(
+	modelsToEnsure := []interface{}{
 		&models.User{},
 		&models.Category{},
 		&models.Ingredient{},
@@ -56,12 +75,18 @@ func AutoMigrate() {
 		&models.Bookmark{},
 		&models.Comment{},
 		&models.Rating{},
-	)
-	if err != nil {
-		log.Fatalf("Failed to migrate database: %v", err)
 	}
 
-	log.Println("Database migrations completed successfully")
+	for _, model := range modelsToEnsure {
+		if !DB.Migrator().HasTable(model) {
+			if err := DB.Migrator().CreateTable(model); err != nil {
+				log.Fatalf("Failed to create table for model %T: %v", model, err)
+			}
+			log.Printf("Created missing table for model %T", model)
+		}
+	}
+
+	log.Println("Database schema check completed successfully")
 }
 
 // SeedDatabase seeds the database with initial data
