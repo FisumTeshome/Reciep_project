@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: Inter, 'Segoe UI', sans-serif;
+  background: #f8fafc;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
