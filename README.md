@@ -1,3 +1,5 @@
+Frontend deployed preview: https://reciep-project.vercel.app/
+
 # Recipe Portfolio App
 
 This repository is organized as a small monorepo for a food recipe platform built with:
