@@ -1,4 +1,6 @@
 Frontend deployed preview: https://reciep-project.vercel.app/
+Backend deployed : https://reciep-project.onrender.com
+hasura deployed : https://minabpro-hasura.onrender.com
 
 # Recipe Portfolio App
 
