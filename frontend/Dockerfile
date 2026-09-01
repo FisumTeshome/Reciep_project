@@ -13,11 +13,8 @@ RUN npm install
 # Copy the rest of the application
 COPY . .
 
-# Build the application for production in the image
-RUN npm run build
-
 # Expose the application port
 EXPOSE 3000
 
 # Run Nuxt in development mode so the app starts inside Docker
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "3000"]
+CMD ["npm", "run", "dev"]
