@@ -101,6 +101,7 @@ const creators = [
         <RecepeCard
           v-for="recipe in recipes"
           :key="recipe.title"
+          id="1"
           :title="recipe.title"
           :image="recipe.image"
           :creator="recipe.creator"

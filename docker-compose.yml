@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database
   postgres:
@@ -65,30 +63,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      hasura:
-        condition: service_started
-    restart: unless-stopped
-    networks:
-      - minabpro_network
-
-  # Nuxt 3 Frontend (run dev server in a Node container with bind mount)
-  frontend:
-    image: node:18
-    container_name: minabpro_frontend
-    working_dir: /app
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=development
-      - NUXT_PUBLIC_API_URL=http://localhost:8080
-      - NUXT_PUBLIC_HASURA_URL=http://localhost:8081
-    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "3000"]
-    volumes:
-      - ./frontend:/app:cached
-      - /app/node_modules
-    depends_on:
-      backend:
-        condition: service_started
       hasura:
         condition: service_started
     restart: unless-stopped

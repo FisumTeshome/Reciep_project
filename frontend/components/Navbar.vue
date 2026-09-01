@@ -1,3 +1,20 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+import { useRouter } from '#imports';
+import { useAuth } from '~/composables/useAuth';
+import { useTheme } from '~/composables/useTheme';
+
+const auth = useAuth();
+const router = useRouter();
+const { isDark, toggleTheme } = useTheme();
+const isLoggedIn = computed(() => auth.isLoggedIn.value);
+
+const logout = async () => {
+  await auth.logout();
+  await router.push('/login');
+};
+</script>
+
 <template>
   <header class="sticky top-0 z-40 border-b border-slate-200/80 bg-white/80 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/80">
     <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
@@ -19,12 +36,19 @@
       </nav>
 
       <div class="flex items-center gap-3">
-        <button class="hidden rounded-full border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-orange-200 hover:text-orange-600 sm:inline-flex dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
-          Dark mode
+        <button @click="toggleTheme" class="hidden rounded-full border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-orange-200 hover:text-orange-600 sm:inline-flex dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+          {{ isDark ? '☀️ Light' : '🌙 Dark' }}
         </button>
-        <NuxtLink to="/recipes" class="inline-flex items-center rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:opacity-95">
-          Explore recipes
-        </NuxtLink>
+        <template v-if="isLoggedIn">
+          <button @click="logout" class="rounded-full border border-orange-500 bg-orange-500/10 px-4 py-2 text-sm font-semibold text-orange-700 transition hover:bg-orange-500 hover:text-white">
+            Logout
+          </button>
+        </template>
+        <template v-else>
+          <NuxtLink to="/login" class="inline-flex items-center rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:opacity-95">
+            Login
+          </NuxtLink>
+        </template>
       </div>
     </div>
   </header>

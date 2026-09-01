@@ -1,75 +1,33 @@
-# Nuxt Minimal Starter
+# RecipeJoy - Frontend (Nuxt 3)
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+The frontend application for RecipeJoy built with Nuxt 3, TypeScript, Vue 3, and TailwindCSS.
 
-## Setup
+## Features Included
 
-Make sure to install dependencies:
+- **User Authentication**: Login (`/login`) & Registration (`/register`) forms with user-friendly error sanitization.
+- **Session Validation**: Automatic token checking on app startup (`plugins/auth.client.ts`) and global route protection (`middleware/auth.global.ts`).
+- **Profile Dashboard**: User profile dashboard (`/profile`) with user stats, recipes, and logout.
+- **Recipe Management**: Explore recipes (`/recipes`), view recipe details (`/recipes/:id`), publish new recipes (`/recipes/create`), and edit existing recipes (`/recipes/:id/edit`).
+- **Sanitized Errors**: Utility function `parseApiError` strips raw technical FetchErrors, HTTP methods, and URL endpoints.
+
+## Development Setup
 
 ```bash
-# npm
+# Install dependencies
 npm install
 
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
-
-```bash
-# npm
+# Start development server
 npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
 
-## Production
+Visit `http://localhost:3000` in your browser.
 
-Build the application for production:
+## Build & Production
 
 ```bash
-# npm
+# Build production bundle
 npm run build
 
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
+# Preview production build locally
 npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
 ```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
