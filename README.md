@@ -1,4 +1,9 @@
 # RecipeJoy - Food Recipe & Community Platform
+Frontend deployed preview: https://reciep-project.vercel.app/
+Backend deployed : https://reciep-project.onrender.com
+hasura deployed : https://minabpro-hasura.onrender.com
+
+# Recipe Portfolio App
 
 RecipeJoy is a modern full-stack web application designed for food enthusiasts to discover, create, save, rate, and share recipes.
 
