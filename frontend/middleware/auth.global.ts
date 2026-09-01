@@ -2,10 +2,10 @@ import { defineNuxtRouteMiddleware, navigateTo } from '#imports';
 import { useAuth } from '~/composables/useAuth';
 
 export default defineNuxtRouteMiddleware(async (to) => {
-  if (process.server) return;
-
   const auth = useAuth();
-  await auth.initializeAuth();
+  if (process.client) {
+    await auth.initializeAuth();
+  }
 
   const protectedRoutes = ['/profile', '/recipes/create'];
   const isEditRoute = to.path.startsWith('/recipes/') && to.path.endsWith('/edit');
